@@ -2,6 +2,7 @@
 #include <dirent.h> 
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
   
 void printFileContents(const char *filename) {
     int fd = open(filename, O_RDONLY);
@@ -10,20 +11,22 @@ void printFileContents(const char *filename) {
         return;
     }
 
+    if(strcmp(filename, "a.out") == 0 && strcmp(filename,"myoutput.txt"))
+        return;
+
     char buffer[4096];
     int bytes_read;
-    printf("Contents of file: %s\n", filename);
+    printf("%s added to file myoutput.txt\n", filename);
     int fdout = open("myoutput.txt", O_WRONLY | O_CREAT, 0644);
     while ((bytes_read = read(fd, buffer, sizeof(buffer))) > 0) {
         write(fdout, buffer, bytes_read);
     }
 
-    if (bytes_read == -1) {
+    if (bytes_read == -1) { //if any error read() returns -1
         perror("read");
     }
 
     close(fd);
-    printf("\n\n");
 }
 
 int main(void) 
