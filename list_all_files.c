@@ -41,8 +41,13 @@ int main(void)
 
     while ((de = readdir(dr)) != NULL)
     {
+        printf("File name: %s\n", de->d_name);
+        printf("File type: %d\n", de->d_type);
+        printf("Inode number: %lu\n", de->d_ino);
+        printf("Record length: %u\n", de->d_reclen);
+        printf("Offset: %ld\n\n", de->d_off);
         if (de->d_type == DT_REG) {
-            printFileContents(de->d_name);
+           // printFileContents(de->d_name);
         }
     }
   
