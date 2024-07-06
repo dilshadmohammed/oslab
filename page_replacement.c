@@ -139,7 +139,7 @@ void lfu(){
 
             for(int j=0;j<frames;j++){
                 frequency=0;
-                for(int k=i+1;k<n;k++){
+                for(int k=i-1;k>=0;k--){
                     if(queue[j]==incomingStream[k])
                         frequency++;
                 }
