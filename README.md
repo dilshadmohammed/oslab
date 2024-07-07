@@ -10,6 +10,12 @@
   - [FCFS](process%20scheduling/fcfs.c)
   - [SJF](process%20scheduling/sjf.c)
   - [Round Robin](process%20scheduling/round_robin.c)
+  
+## Disk scheduling algorithms
+  - [FCFS](disk%20scheduling/fcfs.c)
+  - [SCAN](disk%20scheduling/scan.c)
+  - [C-SCAN](disk%20scheduling/c_scan.c)
 
 ## Shell programs (bash scripts)
    - [`->`](bash/) 
+   
