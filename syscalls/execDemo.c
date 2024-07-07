@@ -3,8 +3,7 @@
 #include<unistd.h>
 int main()
 {
-        //A null terminated array of character 
-        //pointers
+	// compile hello.c to run this program :)
         char *args[]={"./hello.out",NULL};
         execv(args[0],args);
      
