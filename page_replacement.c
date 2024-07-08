@@ -101,10 +101,10 @@ void fifo()
         }
         else{
             int replaced = queue[0],j;
-            for(j=1;j<n;j++){
+            for(j=1;j<3;j++){
                 queue[j-1] = queue[j];
             }
-            queue[j] = incomingStream[i];
+            queue[j-1] = incomingStream[i];
             pageFault++;
             printFrame(queue,incomingStream[i],occupied,1,replaced);
         }

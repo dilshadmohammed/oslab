@@ -1,135 +1,142 @@
 #include <stdio.h>
 
-struct Process
-{
-    int at, bt, temp, ct, tt, wt,pid;
-};
-typedef struct Process Process;
+typedef struct {
+    int pid, at, bt, remaining_time, wt, tt, ct, status;
+} Process;
 
-struct Gant
-{
-    int pid, stime;
-};
+typedef struct {
+    int pid, st, ct;
+} GantChart;
 
-typedef struct Gant Gant;
-Gant gantChart[100];
+int q[100], front = -1, rear = -1;
 
-/*=========================================================================================ERROR IN THIS CODE===================================================================================*/
-void main()
-{
-    Process processes[10];
-    int i, n, currentTime = 0, count = 0, remainingProcesses, tq, total_wt = 0, total_tt = 0;
-    float avg_total_wt, avg_total_tt;
-    printf(" Total number of processes: ");
-    scanf("%d", &n);
-    remainingProcesses = n;
-    printf("Enter the Time time quantum for the process: \t");
+void enqueue(int item) {
+    if (front == -1 && rear == -1)
+        front++;
+    rear++;
+    q[rear] = item;
+}
+
+int dequeue() {
+    int item = q[front];
+    if (front == rear) {
+        front = -1;
+        rear = -1;
+    } else {
+        front++;
+    }
+    return item;
+}
+
+int main() {
+    int n, idle = 0, remainingProcesses, gc_index = 0, tq;
+    float avtt = 0, avwt = 0;
+
+    printf("Enter time quanta: ");
     scanf("%d", &tq);
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+    Process p[n];
+    GantChart gc[100];
+    remainingProcesses = n;
 
-    printf("Enter arrival time for processes: ");
-    for (int i = 0; i < n; i++)
-        scanf("%d", &processes[i].at);
-
-    printf("Enter burst time for processes: ");
-    for (int i = 0; i < n; i++)
-    {
-        scanf("%d", &processes[i].bt);
-        processes[i].temp = processes[i].bt;
-        processes[i].pid = i+1;
+    printf("Enter the (at bt):\n");
+    for (int i = 0; i < n; i++) {
+        scanf("%d%d", &p[i].at, &p[i].bt);
+        p[i].remaining_time = p[i].bt;
+        p[i].pid = i + 1;
+        p[i].status = 0;
     }
 
-    int swapped;
-    for (int i = 0; i < n - 1; i++)
-    {
-        swapped = 0;
-        for (int j = 0; j < n - i - 1; j++)
-        {
-            if (processes[j].at > processes[j + 1].at)
-            {
-                Process temp = processes[j];
-                processes[j] = processes[j+1];
-                processes[j+1] = temp;
-                swapped = 1;
+    // Sort processes by arrival time
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (p[i].at > p[j].at) {
+                Process temp = p[i];
+                p[i] = p[j];
+                p[j] = temp;
             }
         }
-        if (!swapped)
-            break;
-    }
-    int gi=0;
-    gantChart[gi].stime = 0;
-    gantChart[gi++].pid = -1;
-
-    currentTime = processes[0].at;
-
-    for (i = 0; remainingProcesses != 0;)
-    {
-        if (processes[i].temp <= tq && processes[i].temp > 0)
-        {   gantChart[gi].pid = processes[i].pid;
-            gantChart[gi++].stime = currentTime;
-            currentTime = currentTime + processes[i].temp;
-            processes[i].temp = 0;
-            count = 1;
-        }
-        else if (processes[i].temp > 0)
-        {
-            gantChart[gi].pid = processes[i].pid;
-            gantChart[gi++].stime = currentTime;
-            processes[i].temp = processes[i].temp - tq;
-            currentTime = currentTime + tq;
-        }
-        if (processes[i].temp == 0 && count == 1)
-        {
-            remainingProcesses--;
-            processes[i].ct = currentTime;
-            processes[i].wt = currentTime - processes[i].at - processes[i].bt;
-            processes[i].tt = currentTime - processes[i].at;     
-            total_wt = total_wt + processes[i].wt;
-            total_tt = total_tt + processes[i].tt;
-            count = 0;
-        }
-        if (i == n - 1)
-        {
-            i = 0;
-        }
-        else if (processes[i + 1].at <= currentTime)
-        {
-            i++;
-        }
-        else
-        {
-            i = 0;
-        }
     }
 
-    for(int i = 0;i<gi;i++)
-        printf("--------");
-    printf("\n");
-    for(int i = 0;i<gi;i++)
-       {if(gantChart[i].pid == -1)
-       {
-        printf("|      ");
-        continue;
-       } 
-        printf("|  P%d  ",gantChart[i].pid);
+    for (int time = 0; remainingProcesses > 0;) {
+        // Enqueue processes that have arrived
+        for (int i = 0; i < n; i++) {
+            if (p[i].at <= time && p[i].status == 0) {
+                enqueue(i);
+                p[i].status = 1;
+            }
         }
+
+        if (idle == 0 && front == -1) {
+            // Handle idle time
+            gc[gc_index].pid = -1;
+            gc[gc_index].st = time;
+            idle = 1;
+            time++;
+        } else if (front != -1) {
+            if (idle) {
+                gc[gc_index++].ct = time;
+                idle = 0;
+            }
+
+            int k = dequeue();
+            gc[gc_index].st = time;
+            gc[gc_index].pid = p[k].pid;
+
+            if (p[k].remaining_time <= tq) {
+                time += p[k].remaining_time;
+                p[k].ct = time;
+                p[k].wt = time - p[k].at - p[k].bt;
+                p[k].tt = p[k].wt + p[k].bt;
+                p[k].remaining_time = 0;
+
+                gc[gc_index].ct = time;
+                remainingProcesses--;  // Decrement remaining processes count
+                p[k].status = 2;
+
+                avwt += p[k].wt;
+                avtt += p[k].tt;
+            } else {
+                time += tq;
+                gc[gc_index].ct = time;
+                p[k].remaining_time -= tq;
+
+                // Enqueue newly arrived processes during the time quantum
+                for (int i = 0; i < n; i++) {
+                    if (p[i].at <= time && p[i].status == 0) {
+                        enqueue(i);
+                        p[i].status = 1;
+                    }
+                }
+                enqueue(k);  // Re-enqueue the current process
+            }
+            gc_index++;
+        } else {
+            time++;
+        }
+    }
+
+    printf("\nAVERAGE WAITING TIME : %.2f", (avwt / n));
+    printf("\nAVERAGE TURNAROUND TIME : %.2f\n", (avtt / n));
+
+    // Display Gantt chart
+    printf("\n\nGANTT CHART\n");
+    printf("--------------------------------------------------------------\n");
+    for (int i = 0; i < gc_index; i++) {
+        if (gc[i].pid == -1) {
+            printf("| Idle ");
+        } else {
+            printf("| P%d ", gc[i].pid);
+        }
+    }
     printf("|\n");
-    for(int i = 0;i<gi;i++)
-        printf("--------");
-    printf("\n");
-    for(int i = 0;i<gi;i++)
-        printf("%d      ",gantChart[i].stime);
-    printf("%d   \n",currentTime);
-    
-
-    printf("\n Process No \t\t Burst Time \t\t total_tt \t\t Waiting Time ");
-    for (int i = 0; i < n; i++)
-    {
-        printf("\nProcess No[%d] \t\t %d\t\t\t\t %d\t\t\t %d", processes[i].pid, processes[i].bt, processes[i].tt, processes[i].wt);
-
+    printf("--------------------------------------------------------------\n");
+    printf("%d", gc[0].st);
+    for (int i = 0; i < gc_index; i++) {
+        printf("\t%d", gc[i].ct);
     }
-    
-    avg_total_wt = total_wt * 1.0 / n;
-    avg_total_tt = total_tt * 1.0 / n;
-    printf("\n Average Turn Around Time: \t%f", avg_total_wt);
-    printf("\n Average Waiting Time: \t%f", avg_total_tt);
+    printf("\n");
+
+    return 0;
 }
