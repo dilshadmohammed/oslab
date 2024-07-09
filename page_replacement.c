@@ -101,7 +101,7 @@ void fifo()
         }
         else{
             int replaced = queue[0],j;
-            for(j=1;j<3;j++){
+            for(j=1;j<frames;j++){
                 queue[j-1] = queue[j];
             }
             queue[j-1] = incomingStream[i];
@@ -139,7 +139,7 @@ void lfu(){
 
             for(int j=0;j<frames;j++){
                 frequency=0;
-                for(int k=i-1;k>=0;k--){
+                for(int k=i+1;k<n;k++){
                     if(queue[j]==incomingStream[k])
                         frequency++;
                 }
@@ -150,7 +150,12 @@ void lfu(){
                 }
             }
             int replaced = queue[index];
-            queue[index] = incomingStream[i];
+            int j;
+            for(j=index+1;j<frames;j++){
+                queue[j-1] = queue[j];
+            }
+            queue[j-1] = incomingStream[i];
+            //queue[index] = incomingStream[i];
             pageFault++;
             printFrame(queue,incomingStream[i],occupied,1,replaced);
             
