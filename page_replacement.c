@@ -115,55 +115,6 @@ void fifo()
 
 }
 
-void lfu(){
-    int pageFault = 0;
-    int hit = 0;
-    int queue[frames];
-    int frequency;
-    int occupied = 0;
-
-    for(int i=0;i<n;i++){
-        if(checkHit(incomingStream[i],queue,occupied))
-         {
-            hit++;
-           printFrame(queue,incomingStream[i],occupied,0,-1);
-         }
-        else if(occupied<frames){
-            queue[occupied++] = incomingStream[i];
-            pageFault++;
-            printFrame(queue,incomingStream[i],occupied,1,-1);
-        }
-        else{
-            int min = 9999;
-            int index;
-
-            for(int j=0;j<frames;j++){
-                frequency=0;
-                for(int k=i+1;k<n;k++){
-                    if(queue[j]==incomingStream[k])
-                        frequency++;
-                }
-
-                if(frequency<min){
-                    min = frequency;
-                    index = j;
-                }
-            }
-            int replaced = queue[index];
-            int j;
-            for(j=index+1;j<frames;j++){
-                queue[j-1] = queue[j];
-            }
-            queue[j-1] = incomingStream[i];
-            //queue[index] = incomingStream[i];
-            pageFault++;
-            printFrame(queue,incomingStream[i],occupied,1,replaced);
-            
-        }
-        printf("\n");
-    }
-    printf("\n Page Fault: %d\nHit: %d\n",pageFault,hit);
-}
 
 
 
@@ -177,7 +128,7 @@ int main(){
 
     while (1)
     {   int choice;
-        printf("\n\t1.FIFO\n\t2.LRU\n\t3.LFU\n\t4.Exit\n\tEnter a choice: ");
+        printf("\n\t1.FIFO\n\t2.LRU\n\t\t4.Exit\n\tEnter a choice: ");
         scanf("%d",&choice);
 
         switch (choice)
@@ -187,9 +138,6 @@ int main(){
             break;
         case 2:
             lru();
-            break;
-        case 3:
-            lfu();
             break;
         case 4:
             return 0;
